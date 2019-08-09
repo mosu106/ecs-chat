@@ -1,6 +1,10 @@
 <template>
   <section class="section">
     <div id="wrapper" class="container">
+      <div>
+    <!-- componentに追加したものはタグとして使用できるようになる -->
+        <callCanvas />
+    </div>
       <article class="media" v-for="(message, index) in getMessages" :key="index">
         <figure class="media-left">
         </figure>
@@ -35,8 +39,12 @@
 <script>
 import io from 'socket.io-client'
 import Cookies from "universal-cookie";
+import callCanvas from './canvas.vue' // 作成したCallCanvas.vueをインポート
 
 export default {
+  components: {
+    callCanvas // componentsにインポートしたCallCanvasを追加する。
+  },
   data() {
     return {
       message: '',
@@ -61,7 +69,6 @@ export default {
         this.messages.push( message || {} );
       }
     )
-
     // コンポーネントがマウントされてから1秒間はローディングする
     setTimeout(() => {
       this.isLoading = false;

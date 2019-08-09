@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import { interopDefault } from './utils'
 
+const _6cd8d0a8 = () => interopDefault(import('../pages/canvas.vue' /* webpackChunkName: "pages/canvas" */))
+const _7e1a29fe = () => interopDefault(import('../pages/drawing.vue' /* webpackChunkName: "pages/drawing" */))
 const _08670e9c = () => interopDefault(import('../pages/oekakichat.vue' /* webpackChunkName: "pages/oekakichat" */))
 const _75a996b2 = () => interopDefault(import('../pages/index.vue' /* webpackChunkName: "pages/index" */))
 
@@ -80,6 +82,14 @@ export function createRouter() {
     scrollBehavior,
 
     routes: [{
+      path: "/canvas",
+      component: _6cd8d0a8,
+      name: "canvas"
+    }, {
+      path: "/drawing",
+      component: _7e1a29fe,
+      name: "drawing"
+    }, {
       path: "/oekakichat",
       component: _08670e9c,
       name: "oekakichat"
