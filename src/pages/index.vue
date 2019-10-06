@@ -43,7 +43,7 @@ export default {
     sendUserName() {
       //ユーザー名をCookieに保存
       const cookies = new Cookies();
-      cookies.set("user", this.user, { maxAge: 60 * 60 * 24 * 7 });
+      cookies.set("user", this.user, { maxAge: 60 * 60});//ひとまず1時間だけ
       this.socket.emit('name-set', this.user);
       this.$router.push('/oekakichat');
     }

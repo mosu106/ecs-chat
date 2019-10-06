@@ -35,6 +35,7 @@ async function start() {
 }
 
 let messages = [];
+let datas = [];
 
 function socketStart(server) {
       // Websocketサーバーインスタンスを生成する
@@ -67,11 +68,24 @@ function socketStart(server) {
             socket.emit('new-message', message)
           })
         }
+
+        // サーバー側で保持しているデータをクライアント側に送信する
+        if (datas.length > 0) {  
+          datas.forEach(data => {
+            socket.emit('drawing', data)
+          })
+        }
   
         // クライアントから送信があった場合のイベントを作成する
         socket.on('send-message', message => {
           messages.push(message)
           socket.broadcast.emit('new-message', message)
+        })
+
+        //　クライアントからお絵かき情報の送信があった場合のイベントを作成する
+        socket.on('send-drawing', data => {
+          datas.push(data);
+          socket.broadcast.emit('drawing', data)
         })
       })
 }

@@ -1,10 +1,11 @@
 <template>
   <section class="section">
     <div id="wrapper" class="container">
-      <div>
+      <div id=canvas>
     <!-- componentに追加したものはタグとして使用できるようになる -->
         <callCanvas />
-    </div>
+      </div>
+      <div id="chat">
       <article class="media" v-for="(message, index) in getMessages" :key="index">
         <figure class="media-left">
         </figure>
@@ -31,7 +32,7 @@
         </div>
       </article>
       <b-loading :is-full-page="false" :active.sync="isLoading" :can-cancel="false"></b-loading>
-      
+      </div>
     </div>
   </section>
 </template>
@@ -105,11 +106,41 @@ export default {
 </script>
 
 <style scoped>
+.section{
+  margin:0;
+}
 #wrapper
 {
-  max-width: 980px;
+  display: grid;
+  grid-template-rows: 520px 1fr;
 }
 .systemMessage{
     color:darkgray;
+}
+.container{
+  margin: 0px;
+}
+input{
+  display: inline-block;
+}
+.message{
+  background-color: white;
+  color: #000;
+  width:300px;
+  display: inline-block; 
+}
+button{
+  position: relative;
+  left: 310px;
+}
+p.control{
+  position: fixed;
+  bottom: 30px;
+  display: inline-block; 
+}
+
+#chat{
+  height: 100px;
+  overflow: scroll;
 }
 </style>

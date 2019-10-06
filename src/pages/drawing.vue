@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div ref="container">
+    <div ref="container" id="myCanvas">
       <canvas
-        :width="width/2"
-        :height="height/2"
+        :width="width"
+        :height="height"
         ref="canvas">
       </canvas>
     </div>
@@ -11,7 +11,8 @@
 </template>
 
 <script>
-import Konva from 'konva';
+import Konva from 'konva'
+import io from 'socket.io-client'
 
 export default {
   name: 'FreeDrawing',
@@ -31,22 +32,30 @@ export default {
     }
   },
   data: () => ({
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: 980,
+    height: 500,
     stage: null,
     canvas: null,
     context: null,
     drawingLayer: null,
     drawingScope: null,
     lastPointerPosition: {},
+    beforeLocalPos: {
+      x: 0,
+      y: 0
+    },
     localPos: {
       x: 0,
       y: 0
     },
     pos: null,
-    isPaint: false
+    isPaint: false,
+    socket: '',
   }),
   mounted: function () {
+    // VueインスタンスがDOMにマウントされたらSocketインスタンスを生成する
+    this.socket = io()
+
     var container = this.$refs.container;
     this.stage = new Konva.Stage({
       container,
@@ -59,8 +68,8 @@ export default {
     this.canvas = this.$refs.canvas
     this.drawingScope = new Konva.Image({
       image: this.canvas,
-      x: this.width / 4,
-      y: 5,
+      x: 0,
+      y: 0,
       stroke: 'black',
       fill: 'white',
     })
@@ -79,11 +88,23 @@ export default {
     this.drawingScope.on('touchstart', this.mousedown)
     this.stage.addEventListener('touchend', this.mouseup)
     this.stage.addEventListener('touchmove', this.mousemove)
+
+    // サーバー側で保持している描画情報を受信する
+    this.socket.on('drawing',  data => {
+        this.context.strokeStyle = data.color
+        this.context.beginPath()
+        // 描画開始座標を指定する
+        this.context.moveTo(data.before.x, data.before.y)
+        // 描画開始座標から、lineToに指定された座標まで描画する
+        this.context.lineTo(data.after.x, data.after.y)
+        this.context.closePath()
+        this.context.stroke()
+        this.drawingLayer.draw()
+    })
   },
   methods: {
     mousedown: function () {
       this.isPaint = true
-
       // マウスダウン時の座標を取得しておく
       this.lastPointerPosition = this.stage.getPointerPosition()
     },
@@ -95,7 +116,7 @@ export default {
         return;
       }
       // ペンモード時
-      if (this.isTargetMode('brush') || this.isTargetMode('line')) {
+      if (this.isTargetMode('brush')) {
         this.context.globalCompositeOperation = 'source-over';
       }
       // 消しゴムモード時
@@ -110,6 +131,8 @@ export default {
 
       // 描画開始座標を指定する
       this.context.moveTo(this.localPos.x, this.localPos.y)
+      this.beforeLocalPos.x = this.localPos.x
+      this.beforeLocalPos.y = this.localPos.y
 
       this.pos = this.stage.getPointerPosition()
       this.localPos.x = this.pos.x - this.drawingScope.x()
@@ -121,13 +144,21 @@ export default {
       this.context.stroke()
       this.drawingLayer.draw()
 
+      // メッセージオブジェクトを作る
+      let data = {
+        color: this.context.strokeStyle,
+        before: this.beforeLocalPos,
+        after: this.localPos,
+      }
+      // サーバー側から描画情報を送信
+      this.socket.emit('send-drawing', data)
+
       this.lastPointerPosition = this.pos
     },
     onClearCanvas: function () {
       this.context.globalCompositeOperation = 'destination-out'
       this.context.fillRect(0, 0, this.width, this.height)
       this.drawingLayer.draw()
-
       this.$emit('on-reset')
     },
     // 現在のモードが指定されたモードと一致するかどうか
